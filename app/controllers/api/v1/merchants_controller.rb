@@ -1,6 +1,10 @@
 class Api::V1::MerchantsController < ApplicationController
   def index 
-    render json: Merchant.all
+    if params[:item_id]
+      render json: Item.find(params[:item_id]).merchant
+    else
+      render json: Merchant.all
+    end
   end
 
   def show 

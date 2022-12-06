@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 describe "Merchants API" do 
-  it "get all merchants" do 
+  it "gets all merchants" do 
     create_list(:merchant, 3)
 
     get '/api/v1/merchants'
@@ -45,17 +45,18 @@ describe "Merchants API" do
     expect(response).to be_successful
 
     expect(merchant_items.count).to eq(3)
-    
-    expect(item).to have_key(:name)
-    expect(item[:name]).to be_a(String)
+    merchant_items.each do |item|
+      expect(item).to have_key(:name)
+      expect(item[:name]).to be_a(String)
 
-    expect(item).to have_key(:description)
-    expect(item[:description]).to be_a(String)
+      expect(item).to have_key(:description)
+      expect(item[:description]).to be_a(String)
 
-    expect(item).to have_key(:unit_price)
-    expect(item[:unit_price]).to be_a(Float)
+      expect(item).to have_key(:unit_price)
+      expect(item[:unit_price]).to be_a(Float)
 
-    expect(item).to have_key(:merchant_id)
-    expect(item[:merchant_id]).to be_an(Integer)
+      expect(item).to have_key(:merchant_id)
+      expect(item[:merchant_id]).to eq(merchant.id)
+    end
   end
 end
