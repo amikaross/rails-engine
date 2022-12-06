@@ -19,6 +19,14 @@ class Api::V1::ItemsController < ApplicationController
     render json: ItemSerializer.new(Item.update(params[:id], item_params))
   end
 
+  def destroy
+    # item = Item.find(params[:id])
+    # empty_invoices = item.invoices_with_one_item
+    # require 'pry'; binding.pry
+    # empty_invoices.delete_all
+    render json: Item.destroy(params[:id])
+  end
+
   private
 
   def item_params
