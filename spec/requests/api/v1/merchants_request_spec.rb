@@ -10,11 +10,14 @@ describe "Merchants API" do
 
     merchants = JSON.parse(response.body, symbolize_names: true)
 
-    expect(merchants.count).to eq(3)
+    expect(merchants).to have_key(:data)
+    expect(merchants[:data].count).to eq(3)
 
-    merchants.each do |merchant|
-      expect(merchant).to have_key(:name)
-      expect(merchant[:name]).to be_a(String)
+    merchants[:data].each do |merchant|
+      expect(merchant).to have_key(:attributes)
+      expect(merchant[:attributes]).to be_a(Hash)
+      expect(merchant[:attributes]).to have_key(:name)
+      expect(merchant[:attributes][:name]).to be_a(String)
     end
   end
 
@@ -27,8 +30,10 @@ describe "Merchants API" do
 
     expect(response).to be_successful 
 
-    expect(merchant).to have_key(:name)
-    expect(merchant[:name]).to be_a(String)
+    expect(merchant).to have_key(:data)
+    expect(merchant[:data]).to have_key(:attributes)
+    expect(merchant[:data][:attributes]).to have_key(:name)
+    expect(merchant[:data][:attributes][:name]).to be_a(String)
   end
 
   it "can get all items for a given merchant id" do 
@@ -59,4 +64,7 @@ describe "Merchants API" do
       expect(item[:merchant_id]).to eq(merchant.id)
     end
   end
+
+  it "can handle sad paths and empty (none found) responses"
+  
 end

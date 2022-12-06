@@ -105,8 +105,10 @@ describe "Items API" do
 
     expect(response).to be_successful
 
-    expect(merchant_data).to have_key(:name)
-    expect(merchant_data[:name]).to eq(merchant.name)
+    expect(merchant_data).to have_key(:data)
+    expect(merchant_data[:data]).to have_key(:attributes)
+    expect(merchant_data[:data][:attributes]).to have_key(:name)
+    expect(merchant_data[:data][:attributes][:name]).to eq(merchant.name)
   end
 
   it "can delete an item"
