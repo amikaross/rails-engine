@@ -257,4 +257,138 @@ describe "Items API" do
     expect{Item.find(item.id)}.to raise_error(ActiveRecord::RecordNotFound)
     expect{Invoice.find(invoice_1.id)}.to raise_error(ActiveRecord::RecordNotFound)
   end
+
+  it "can return the results of a search for one item by name" do 
+    merchant = create(:merchant)
+    other_item = merchant.items.create!(name: "Turing", description: "no", unit_price: 10.99)
+    one_item = merchant.items.create!(name: "Ring World", description: "no", unit_price: 12.99)
+    yet_another_item = merchant.items.create!(name: "Titanium Ring", description: "its a ring", unit_price: 10002.30)
+
+    get "/api/v1/items/find?name=ring"
+
+    item_data = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to be_successful
+
+    expect(item_data).to have_key(:data)
+    item = item_data[:data]
+    expect(item).to be_a(Hash)
+
+    expect(item).to have_key(:attributes)
+    expect(item[:attributes]).to be_a(Hash)
+
+    expect(item[:attributes]).to have_key(:name)
+    expect(item[:attributes][:name]).to eq(one_item.name)
+
+    expect(item[:attributes]).to have_key(:description)
+    expect(item[:attributes][:description]).to eq(one_item.description)
+
+    expect(item[:attributes]).to have_key(:unit_price)
+    expect(item[:attributes][:unit_price]).to eq(one_item.unit_price)
+
+    expect(item[:attributes]).to have_key(:merchant_id)
+    expect(item[:attributes][:merchant_id]).to eq(one_item.merchant_id)
+  end
+
+  it "can return the results of a search for one item by price" do 
+    merchant = create(:merchant)
+    other_item = merchant.items.create!(name: "Turing", description: "no", unit_price: 10.99)
+    one_item = merchant.items.create!(name: "Ring World", description: "no", unit_price: 12.99)
+    yet_another_item = merchant.items.create!(name: "Titanium Ring", description: "its a ring", unit_price: 8.30)
+
+    get "/api/v1/items/find?min_price=10"
+
+    item_data = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to be_successful
+
+    expect(item_data).to have_key(:data)
+    item = item_data[:data]
+    expect(item).to be_a(Hash)
+
+    expect(item).to have_key(:attributes)
+    expect(item[:attributes]).to be_a(Hash)
+
+    expect(item[:attributes]).to have_key(:name)
+    expect(item[:attributes][:name]).to eq(one_item.name)
+
+    expect(item[:attributes]).to have_key(:description)
+    expect(item[:attributes][:description]).to eq(one_item.description)
+
+    expect(item[:attributes]).to have_key(:unit_price)
+    expect(item[:attributes][:unit_price]).to eq(one_item.unit_price)
+
+    expect(item[:attributes]).to have_key(:merchant_id)
+    expect(item[:attributes][:merchant_id]).to eq(one_item.merchant_id)
+  end
+
+  it "responds with an empty hash if there is no item which corresponds" do 
+    merchant = create(:merchant)
+    other_item = merchant.items.create!(name: "Turing", description: "no", unit_price: 10.99)
+    one_item = merchant.items.create!(name: "Ring World", description: "no", unit_price: 12.99)
+    yet_another_item = merchant.items.create!(name: "Titanium Ring", description: "its a ring", unit_price: 10002.30)
+
+    get "/api/v1/items/find?name=cad"
+
+    item_data = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to be_successful
+
+    expect(item_data).to have_key(:data)
+    item = item_data[:data]
+    expect(item).to be_a(Hash)
+    expect(item).to be_empty
+  end
+
+  it "returns an error if name and min_price/max_price is used" do 
+    get "/api/v1/items/find?name=ring&min_price=50"
+
+    data = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response.status).to eq(400)
+
+    expect(data).to have_key(:message)
+    expect(data[:message]).to eq("Invalid query params")
+
+    expect(data).to have_key(:errors)
+    expect(data[:errors]).to eq("Name and price can't be queried simultaneously")
+  end
+
+  it "returns an error if there is no correct query parameter" do 
+    get "/api/v1/items/find"
+
+    data = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response.status).to eq(400)
+
+    expect(data).to have_key(:message)
+    expect(data[:message]).to eq("Invalid query params")
+
+    expect(data).to have_key(:errors)
+    expect(data[:errors]).to eq("Name or Price query must exist")    
+
+    get "/api/v1/items/find?merchant_id=1"
+
+    data = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response.status).to eq(400)
+
+    expect(data).to have_key(:message)
+    expect(data[:message]).to eq("Invalid query params")
+
+    expect(data).to have_key(:errors)
+    expect(data[:errors]).to eq("Name or Price query must exist")  
+
+    get "/api/v1/items/find?name="
+
+    data = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response.status).to eq(400)
+
+    expect(data).to have_key(:message)
+    expect(data[:message]).to eq("Invalid query params")
+
+    expect(data).to have_key(:errors)
+    expect(data[:errors]).to eq("Query cannot be empty")  
+  end
 end
