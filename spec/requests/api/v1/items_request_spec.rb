@@ -139,7 +139,7 @@ describe "Items API" do
     InvoiceItem.create(item: other_item, invoice: invoice_2, quantity: 1, unit_price: other_item.unit_price)
   
     expect(Item.count).to eq(2)
-    # expect(Invoice.count).to eq(2)
+    expect(Invoice.count).to eq(2)
     expect(InvoiceItem.count).to eq(3)
     expect(invoice_2.items.count).to eq(2)
 
@@ -147,11 +147,11 @@ describe "Items API" do
 
     expect(response).to be_successful
     expect(Item.count).to eq(1)
-    # expect(Invoice.count).to eq(1)
+    expect(Invoice.count).to eq(1)
     expect(InvoiceItem.count).to eq(1)
     expect(invoice_2.items.count).to eq(1)
     expect{Item.find(item.id)}.to raise_error(ActiveRecord::RecordNotFound)
-    # expect{Invoice.find(invoice_1.id)}.to raise_error(ActiveRecord::RecordNotFound)
+    expect{Invoice.find(invoice_1.id)}.to raise_error(ActiveRecord::RecordNotFound)
   end
 
   it "can handle sad paths for create, get, edit, etc."

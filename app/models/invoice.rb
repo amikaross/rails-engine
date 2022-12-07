@@ -5,7 +5,10 @@ class Invoice < ApplicationRecord
   has_many :invoice_items
   has_many :items, through: :invoice_items
 
-  def number_of_items
-    require 'pry'; binding.pry
+  def self.empty_invoices 
+    self.left_joins(:invoice_items)
+        .group(:id)
+        .select("invoices.*, count(invoice_items.*) as count")
+        .having("invoice_items.count = 0")
   end
 end

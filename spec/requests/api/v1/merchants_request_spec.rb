@@ -23,6 +23,18 @@ describe "Merchants API" do
     end
   end
 
+  it "when getting all merchants, no error if db is empty, just returns an empty response" do 
+    get '/api/v1/merchants'
+
+    expect(response).to be_successful
+
+    merchants = JSON.parse(response.body, symbolize_names: true)
+
+    expect(merchants).to have_key(:data)
+    expect(merchants[:data]).to be_an(Array)
+    expect(merchants[:data].count).to eq(0)
+  end
+
   it "can get one merchant by their id" do 
     id = create(:merchant).id
 
@@ -36,6 +48,16 @@ describe "Merchants API" do
     expect(merchant[:data]).to have_key(:attributes)
     expect(merchant[:data][:attributes]).to have_key(:name)
     expect(merchant[:data][:attributes][:name]).to be_a(String)
+  end
+
+  it "responds with an error if the id is not found" do 
+    get "/api/v1/merchants/1"
+
+    merchant = JSON.parse(response.body, symbolize_names: true)
+    expect(response.status).to eq(404)
+    expect(merchant).to have_key(:message)
+    expect(merchant).to have_key(:errors)
+    expect(merchant[:errors].first).to eq("Couldn't find Merchant with 'id'=1")
   end
 
   it "can get all items for a given merchant id" do 
@@ -73,8 +95,16 @@ describe "Merchants API" do
       expect(item[:attributes]).to have_key(:merchant_id)
       expect(item[:attributes][:merchant_id]).to eq(merchant.id)
     end
-  end
+  end  
 
-  it "can handle sad paths and empty (none found) responses"
-  
+  it "responds with an error if the merchant id is not found" do 
+    get "/api/v1/merchants/1/items"
+
+    merchant = JSON.parse(response.body, symbolize_names: true)
+   
+    expect(response.status).to eq(404)
+    expect(merchant).to have_key(:message)
+    expect(merchant).to have_key(:errors)
+    expect(merchant[:errors].first).to eq("Couldn't find Merchant with 'id'=1")
+  end
 end
