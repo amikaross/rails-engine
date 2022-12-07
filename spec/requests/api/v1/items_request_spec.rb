@@ -257,6 +257,4 @@ describe "Items API" do
     expect{Item.find(item.id)}.to raise_error(ActiveRecord::RecordNotFound)
     expect{Invoice.find(invoice_1.id)}.to raise_error(ActiveRecord::RecordNotFound)
   end
-
-  it "can handle sad paths for create, get, edit, etc."
 end
