@@ -12,6 +12,7 @@ gem 'pg', '>= 0.18', '< 2.0'
 gem 'puma', '~> 3.11'
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 # gem 'jbuilder', '~> 2.5'
+
 # Use Redis adapter to run Action Cable in production
 # gem 'redis', '~> 4.0'
 # Use ActiveModel has_secure_password
@@ -28,6 +29,7 @@ gem 'bootsnap', '>= 1.1.0', require: false
 
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin AJAX possible
 # gem 'rack-cors'
+gem 'jsonapi-serializer'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
@@ -35,6 +37,11 @@ group :development, :test do
   gem 'rspec-rails'
   gem 'factory_bot_rails'
   gem 'faker'
+  gem 'pry'
+end
+
+group :test do 
+  gem 'database_cleaner-active_record'
 end
 
 group :development do
