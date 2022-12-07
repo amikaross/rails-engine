@@ -35,6 +35,18 @@ describe "Items API" do
     end
   end
 
+  it "when getting all items, no error if db is empty, just returns an empty response" do 
+    get '/api/v1/items'
+
+    expect(response).to be_successful
+
+    merchants = JSON.parse(response.body, symbolize_names: true)
+
+    expect(merchants).to have_key(:data)
+    expect(merchants[:data]).to be_an(Array)
+    expect(merchants[:data].count).to eq(0)
+  end
+
   it "can get one item by its id" do 
     id = create(:item).id
 
@@ -64,6 +76,16 @@ describe "Items API" do
     expect(item[:attributes][:merchant_id]).to be_an(Integer)
   end
 
+  it "responds with an error if the id is not found" do 
+    get "/api/v1/items/1"
+
+    merchant = JSON.parse(response.body, symbolize_names: true)
+    expect(response.status).to eq(404)
+    expect(merchant).to have_key(:message)
+    expect(merchant).to have_key(:errors)
+    expect(merchant[:errors].first).to eq("Couldn't find Item with 'id'=1")
+  end
+
   it "can create a new item" do 
     merchant_id = create(:merchant).id
     item_params = {
@@ -75,16 +97,98 @@ describe "Items API" do
 
     headers = {"CONTENT_TYPE" => "application/json"}
 
+    expect(Item.all.count).to eq(0)
+
     post "/api/v1/items", headers: headers, params: JSON.generate(item: item_params)
 
     created_item = Item.last
 
     expect(response).to be_successful
+    expect(Item.all.count).to eq(1)
 
     expect(created_item.name).to eq(item_params[:name])
     expect(created_item.description).to eq(item_params[:description])
     expect(created_item.unit_price).to eq(item_params[:unit_price])
     expect(created_item.merchant_id).to eq(item_params[:merchant_id])
+  end
+
+  it "doesn't allow you to create an item for a merchant that doesn't exist" do 
+    item_params = {
+      name: "value1",
+      description: "value2",
+      unit_price: 100.99,
+      merchant_id: 1
+    }
+
+    headers = {"CONTENT_TYPE" => "application/json"}
+
+    expect(Item.all.count).to eq(0)
+
+    post "/api/v1/items", headers: headers, params: JSON.generate(item: item_params)
+    data = JSON.parse(response.body, symbolize_names: true)
+
+    expect(Item.all.count).to eq(0)
+    expect(response.status).to eq(404)
+    expect(data).to have_key(:message)
+    expect(data).to have_key(:errors)
+    expect(data[:errors].first).to eq("Couldn't find Merchant with 'id'=1")
+  end
+
+  it "ignores any attributes sent which are not allowed" do 
+    merchant_id = create(:merchant).id
+    item_params = {
+      name: "value1",
+      description: "value2",
+      unit_price: 100.99,
+      merchant_id: merchant_id,
+      something: "something",
+      not_allowed: "not_allowed"
+    }
+
+    headers = {"CONTENT_TYPE" => "application/json"}
+
+    expect(Item.all.count).to eq(0)
+
+    post "/api/v1/items", headers: headers, params: JSON.generate(item: item_params)
+    item_data = JSON.parse(response.body, symbolize_names: true)
+
+    created_item = Item.last
+
+    expect(response).to be_successful
+    expect(Item.all.count).to eq(1)
+
+    expect(item_data[:data]).to_not have_key(:something)
+    expect(item_data[:data]).to_not have_key(:not_allowed)
+
+    expect(created_item.name).to eq(item_params[:name])
+    expect(created_item.description).to eq(item_params[:description])
+    expect(created_item.unit_price).to eq(item_params[:unit_price])
+    expect(created_item.merchant_id).to eq(item_params[:merchant_id])
+  end
+
+  it "returns an error if any attribute is missing" do 
+    merchant_id = create(:merchant).id
+    item_params = {
+      description: "value2",
+      merchant_id: merchant_id
+    }
+
+    headers = {"CONTENT_TYPE" => "application/json"}
+
+    expect(Item.all.count).to eq(0)
+
+    post "/api/v1/items", headers: headers, params: JSON.generate(item: item_params)
+    
+    data = JSON.parse(response.body, symbolize_names: true)
+
+    expect(Item.all.count).to eq(0)
+    expect(response.status).to eq(400)
+
+    expect(data).to have_key(:message)
+    expect(data[:message]).to eq("Record is missing one or more attributes")
+
+    expect(data).to have_key(:errors)
+    expect(data[:errors]).to eq(["Name can't be blank", "Unit price can't be blank", "Unit price is not a number"])
   end
 
   it "can edit an existing item" do 
