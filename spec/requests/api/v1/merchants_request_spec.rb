@@ -107,4 +107,39 @@ describe "Merchants API" do
     expect(merchant).to have_key(:errors)
     expect(merchant[:errors].first).to eq("Couldn't find Merchant with 'id'=1")
   end
+
+  it "can search for a list of merchants by name" do 
+    merchant_1 = Merchant.create!(name: "Turing School")
+    merchant_2 = Merchant.create!(name: "Ring World")
+    merchant_3 = Merchant.create!(name: "Taco Bell")
+
+    get '/api/v1/merchants/find_all?name=ring'
+
+    merchants = JSON.parse(response.body, symbolize_names: true)
+
+    expect(merchants).to have_key(:data)
+    expect(merchants[:data].count).to eq(2)
+
+    merchant = merchants[:data].first
+
+    expect(merchant).to have_key(:id)
+    expect(merchant).to have_key(:type)
+    expect(merchant).to have_key(:attributes)
+    expect(merchant[:attributes]).to be_a(Hash)
+    expect(merchant[:attributes]).to have_key(:name)
+    expect(merchant[:attributes][:name]).to eq("Ring World")
+  end
+
+  it "will return an empty array if there are no matches" do 
+    merchant_1 = Merchant.create!(name: "Turing School")
+    merchant_2 = Merchant.create!(name: "Ring World")
+    merchant_3 = Merchant.create!(name: "Taco Bell")
+
+    get '/api/v1/merchants/find_all?name=sofa'
+
+    merchants = JSON.parse(response.body, symbolize_names: true)
+
+    expect(merchants).to have_key(:data)
+    expect(merchants[:data]).to eq([])
+  end
 end
