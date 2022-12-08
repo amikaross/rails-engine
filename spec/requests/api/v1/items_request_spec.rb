@@ -290,7 +290,7 @@ describe "Items API" do
     expect(item[:attributes][:merchant_id]).to eq(one_item.merchant_id)
   end
 
-  it "can return a list of results for search for items by name" do 
+  it "can return a list of results for search for items by name OR price" do 
     merchant = create(:merchant)
     other_item = merchant.items.create!(name: "Turing", description: "no", unit_price: 10.99)
     one_item = merchant.items.create!(name: "Ring World", description: "no", unit_price: 12.99)
@@ -298,6 +298,16 @@ describe "Items API" do
     fourth_item = merchant.items.create!(name: "Costco", description: "its a ring", unit_price: 10002.30)
 
     get "/api/v1/items/find_all?name=ring"
+
+    items = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to be_successful
+
+    expect(items).to have_key(:data)
+    expect(items[:data]).to be_an(Array)
+    expect(items[:data].count).to eq(3)
+
+    get "/api/v1/items/find_all?min_price=11"
 
     items = JSON.parse(response.body, symbolize_names: true)
 
@@ -315,6 +325,31 @@ describe "Items API" do
     yet_another_item = merchant.items.create!(name: "Titanium Ring", description: "its a ring", unit_price: 8.30)
 
     get "/api/v1/items/find?min_price=10"
+
+    item_data = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to be_successful
+
+    expect(item_data).to have_key(:data)
+    item = item_data[:data]
+    expect(item).to be_a(Hash)
+
+    expect(item).to have_key(:attributes)
+    expect(item[:attributes]).to be_a(Hash)
+
+    expect(item[:attributes]).to have_key(:name)
+    expect(item[:attributes][:name]).to eq(one_item.name)
+
+    expect(item[:attributes]).to have_key(:description)
+    expect(item[:attributes][:description]).to eq(one_item.description)
+
+    expect(item[:attributes]).to have_key(:unit_price)
+    expect(item[:attributes][:unit_price]).to eq(one_item.unit_price)
+
+    expect(item[:attributes]).to have_key(:merchant_id)
+    expect(item[:attributes][:merchant_id]).to eq(one_item.merchant_id)
+
+    get "/api/v1/items/find?max_price=14"
 
     item_data = JSON.parse(response.body, symbolize_names: true)
 
@@ -419,6 +454,18 @@ describe "Items API" do
 
     expect(data).to have_key(:errors)
     expect(data[:errors]).to eq("Query cannot be empty")  
+
+    get "/api/v1/items/find?min_price="
+
+    data = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response.status).to eq(400)
+
+    expect(data).to have_key(:message)
+    expect(data[:message]).to eq("Invalid query params")
+
+    expect(data).to have_key(:errors)
+    expect(data[:errors]).to eq("Query cannot be empty") 
   end
 
   it "returns an error if price is less than zero or if min price is less than max price" do 
