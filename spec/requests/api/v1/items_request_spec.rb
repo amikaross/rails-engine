@@ -297,7 +297,7 @@ describe "Items API" do
     yet_another_item = merchant.items.create!(name: "Titanium Ring", description: "its a ring", unit_price: 10002.30)
     fourth_item = merchant.items.create!(name: "Costco", description: "its a ring", unit_price: 10002.30)
 
-    get "/api/v1/items/find?name=ring"
+    get "/api/v1/items/find_all?name=ring"
 
     items = JSON.parse(response.body, symbolize_names: true)
 
