@@ -143,6 +143,33 @@ describe "Merchants API" do
     expect(merchants[:data]).to eq([])
   end
 
+  it "will return an error if the query is empty or if name is not included" do 
+    get '/api/v1/merchants/find_all?name='
+
+    data = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response.status).to eq(400)
+
+    expect(data).to have_key(:message)
+    expect(data[:message]).to eq("Invalid query params")
+
+    expect(data).to have_key(:errors)
+    expect(data[:errors]).to eq("Query cannot be empty") 
+
+    get '/api/v1/merchants/find_all?something=something'
+
+    data = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response.status).to eq(400)
+
+    expect(data).to have_key(:message)
+    expect(data[:message]).to eq("Invalid query params")
+
+    expect(data).to have_key(:errors)
+    expect(data[:errors]).to eq("Name query must exist") 
+  end
+
+
   it "can search for a single merchant by name" do 
     merchant_1 = Merchant.create!(name: "Turing School")
     merchant_2 = Merchant.create!(name: "Ring World")
@@ -158,5 +185,18 @@ describe "Merchants API" do
     expect(merchant[:data]).to have_key(:attributes)
     expect(merchant[:data][:attributes]).to have_key(:name)
     expect(merchant[:data][:attributes][:name]).to eq("Ring World")
+  end
+
+  it "will return an empty hash if there are no matches" do 
+    get "/api/v1/merchants/find?name=cad"
+
+    item_data = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to be_successful
+
+    expect(item_data).to have_key(:data)
+    item = item_data[:data]
+    expect(item).to be_a(Hash)
+    expect(item).to be_empty
   end
 end
