@@ -12,4 +12,17 @@ class ErrorSerializer
       "errors": messages
     }
   end
+
+  def self.no_matching_object
+    {
+      "data": {}
+    }
+  end
+
+  def self.invalid_query_params(error)
+    {
+      "message": "Invalid query params",
+      "errors": error
+    }
+  end
 end
