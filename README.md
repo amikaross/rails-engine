@@ -1,6 +1,6 @@
 ### Rails Engine
 
-Final solo project [Rails-Engine](https://backend.turing.edu/module3/projects/rails_engine_lite/) for mod3 at [Turing](turing.edu)
+Opening solo project [Rails-Engine](https://backend.turing.edu/module3/projects/rails_engine_lite/) for mod3 at [Turing](turing.edu)
 
 
 
