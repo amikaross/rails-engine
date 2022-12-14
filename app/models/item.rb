@@ -7,8 +7,8 @@ class Item < ApplicationRecord
   after_destroy :delete_empty_invoices
 
   def delete_empty_invoices
-    empty_invoices = Invoice.empty_invoices
-    empty_invoices.each { |invoice| Invoice.delete(invoice.id) }
+    empty_invoices = Invoice.empty_invoices.destroy_all
+    # empty_invoices.each { |invoice| Invoice.delete(invoice.id) }
   end
 
   def self.search_by_name(search_params)
